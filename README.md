@@ -76,9 +76,7 @@ DeviceLogonEvents
 | order by SuccessfulLogons desc, FailedLogons desc
 ```
 
-<--IMAGE-->
-
-**Caption suggestion:** Aggregated view of logon events on `npt-ws01` by account, showing successful and failed attempts, source IPs, and logon types.
+<img width="1578" height="748" alt="image" src="https://github.com/user-attachments/assets/024b6836-5bb1-40cb-b53f-854b1fdd4ad0" />
 
 ### Findings
 
@@ -100,9 +98,7 @@ Identify where the successful `helpdesk` logons originated from and determine wh
 
 The results from the previous query were expanded to inspect the source IPs associated with successful `helpdesk` logons.
 
-<--IMAGE-->
-
-**Caption suggestion:** Detailed view of successful `helpdesk` logons on `npt-ws01`, showing source IP addresses.
+<img width="1210" height="406" alt="image" src="https://github.com/user-attachments/assets/47516558-a4c4-4fa6-bc4a-2729e9a906f0" />
 
 ### Findings
 
@@ -131,7 +127,6 @@ Using `DeviceProcessEvents`, the investigation focused on processes executed und
 let start_time = datetime(2026-04-21T18:00:00.00Z);
 let end_time = datetime(2026-04-22T08:00:00.00Z);
 let HostInQuestion = "npt-ws01";
-
 DeviceProcessEvents
 | where TimeGenerated between (start_time .. end_time)
 | where DeviceName == HostInQuestion
@@ -140,9 +135,7 @@ DeviceProcessEvents
 | sort by Timestamp asc
 ```
 
-<--IMAGE-->
-
-**Caption suggestion:** Process events for the `helpdesk` account on `npt-ws01`, highlighting unusual executions.
+<img width="1297" height="462" alt="image" src="https://github.com/user-attachments/assets/27b034d4-9991-4d5c-94dd-818eb7162f18" />
 
 ### Findings
 
@@ -154,7 +147,6 @@ To better understand the execution chain, the query was refined to focus on `Win
 let start_time = datetime(2026-04-21T18:00:00.00Z);
 let end_time = datetime(2026-04-22T08:00:00.00Z);
 let HostInQuestion = "npt-ws01";
-
 DeviceProcessEvents
 | where TimeGenerated between (start_time .. end_time)
 | where DeviceName == HostInQuestion
@@ -169,9 +161,8 @@ DeviceProcessEvents
 | sort by Timestamp asc
 ```
 
-<--IMAGE-->
+<img width="1404" height="466" alt="image" src="https://github.com/user-attachments/assets/41f74c77-0b1f-49ed-b0c9-49537ffa1897" />
 
-**Caption suggestion:** Process tree showing the execution chain leading to `WindowsUpdate.exe`.
 
 ### Findings
 
@@ -204,7 +195,6 @@ Using `DeviceNetworkEvents`, the investigation reviewed successful outbound conn
 let start_time = datetime(2026-04-21T18:00:00.00Z);
 let end_time = datetime(2026-04-22T08:00:00.00Z);
 let HostInQuestion = "npt-ws01";
-
 DeviceNetworkEvents
 | where TimeGenerated between (start_time .. end_time)
 | where DeviceName == HostInQuestion
@@ -213,9 +203,7 @@ DeviceNetworkEvents
 | project TimeGenerated, DeviceName, RemoteIP, ActionType, RemoteUrl
 ```
 
-<--IMAGE-->
-
-**Caption suggestion:** Network connections from `npt-ws01` under the `helpdesk` account, showing destination IPs and URLs.
+<img width="1101" height="432" alt="image" src="https://github.com/user-attachments/assets/3f957172-17ef-4818-9588-3c50c9610e2c" />
 
 ### Findings
 
@@ -243,7 +231,6 @@ Using `DeviceFileEvents`, the investigation searched for file creation events ma
 let start_time = datetime(2026-04-21T18:00:00.00Z);
 let end_time = datetime(2026-04-22T08:00:00.00Z);
 let HostInQuestion = "npt-ws01";
-
 DeviceFileEvents
 | where TimeGenerated between (start_time .. end_time)
 | where DeviceName == HostInQuestion
@@ -253,9 +240,8 @@ DeviceFileEvents
 | sort by Timestamp asc
 ```
 
-<--IMAGE-->
+<img width="1395" height="447" alt="image" src="https://github.com/user-attachments/assets/eb371b7e-4654-45d7-a3eb-4975f23d9443" />
 
-**Caption suggestion:** File creation event for `WindowsUpdate.exe` in `C:\Windows\Temp\`, including file hashes.
 
 ### Findings
 
@@ -283,15 +269,21 @@ Using `DeviceRegistryEvents`, the investigation searched for registry key creati
 let start_time = datetime(2026-04-21T18:00:00.00Z);
 let end_time = datetime(2026-04-22T08:00:00.00Z);
 let HostInQuestion = "npt-ws01";
-
 DeviceRegistryEvents
-| where TimeGenerated between (start_time .. end_time)
-| where DeviceName == HostInQuestion
-| where ActionType == "RegistryKeyCreated"
-| project TimeGenerated, DeviceName, RegistryKey, InitiatingProcessCommandLine, InitiatingProcessFileName, InitiatingProcessFolderPath
+| where Timestamp between (start_time .. end_time)
+| where DeviceName =~ HostInQuestion
+| where ActionType =~ "RegistryValueSet"
+| extend NormalizedRegistryKey = tolower(RegistryKey)
+| where
+    NormalizedRegistryKey contains @"\software\microsoft\windows\currentversion\run"
+    or NormalizedRegistryKey contains @"\policies\explorer\run"
+    or NormalizedRegistryKey contains @"\runonceex"
+| project Timestamp, DeviceName, ActionType, RegistryKey, RegistryValueName, RegistryValueData, RegistryValueType, InitiatingProcessFileName, InitiatingProcessCommandLine, InitiatingProcessFolderPath, InitiatingProcessAccountName
+| order by Timestamp asc
 ```
 
-<--IMAGE-->
+<img width="1554" height="493" alt="image" src="https://github.com/user-attachments/assets/410290ac-c9e7-4e73-affd-da837e501e56" />
+
 
 **Caption suggestion:** Registry key creation events on `npt-ws01`, highlighting the malicious Run key.
 
