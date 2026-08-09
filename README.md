@@ -175,7 +175,7 @@ This sequence is consistent with:
 - Remote WMI execution (`wmiprvse.exe`) used to spawn `cmd.exe`.
 - A command issued to run `WindowsUpdate.exe` from a non-standard location.
 
-This behavior strongly suggested that an external actor had established command-and-control (C2) activity and was issuing remote commands on `npt-ws01`.
+This behaviour strongly suggested that an external actor had established command-and-control (C2) activity and was issuing remote commands on `npt-ws01`.
 
 ---
 
@@ -321,7 +321,6 @@ Using `DeviceProcessEvents`, the investigation searched for command lines refere
 let start_time = datetime(2026-04-21T18:00:00.00Z);
 let end_time = datetime(2026-04-22T08:00:00.00Z);
 let HostInQuestion = "npt-ws01";
-
 DeviceProcessEvents
 | where TimeGenerated between (start_time .. end_time)
 | where DeviceName == HostInQuestion
@@ -535,15 +534,5 @@ Subsequent correlation of process, network, file, and registry telemetry confirm
 This end-to-end investigation demonstrates how structured KQL hunting, combined with an understanding of attacker techniques, can uncover and validate a multi-stage intrusion.
 
 ---
-
-## How This Case Study Demonstrates Analyst Skills
-
-This investigation highlights several key capabilities relevant to security operations and incident response roles:
-
-- **Hypothesis-driven hunting:** Each step began with a clear objective (e.g., “Are there suspicious logons?”, “Did this lead to execution?”).
-- **Effective use of telemetry:** Logon, process, network, file, and registry data were combined to reconstruct the attack chain.
-- **ATT&CK-aligned thinking:** Behaviors were mapped to recognized techniques, showing familiarity with industry frameworks.
-- **Clear, structured reporting:** Findings were organized into a coherent narrative suitable for both technical and non-technical stakeholders.
-- **Actionable remediation:** The response plan translates technical findings into concrete containment, eradication, and recovery steps.
 
 This case study can serve as a portfolio piece to demonstrate practical incident response, threat hunting, and security analytics skills in a real-world scenario.
