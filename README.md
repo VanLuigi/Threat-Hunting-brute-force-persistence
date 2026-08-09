@@ -325,11 +325,10 @@ DeviceProcessEvents
 | where TimeGenerated between (start_time .. end_time)
 | where DeviceName == HostInQuestion
 | where ProcessCommandLine contains "Windows\\Temp\\WindowsUpdate"
+| order by TimeGenerated desc
 ```
 
-<--IMAGE-->
-
-**Caption suggestion:** Process events showing creation of scheduled tasks and services tied to `WindowsUpdate.exe`.
+<img width="1546" height="508" alt="image" src="https://github.com/user-attachments/assets/a95cbe1a-f21f-48f1-aca0-7cadced0af64" />
 
 ### Findings
 
@@ -349,7 +348,7 @@ This command:
 
 Indicators of malicious intent:
 
-- **Name spoofing:** Labeled as a “Google” task but runs a generic `WindowsUpdate.exe`.
+- **Name spoofing:** Labelled as a “Google” task but runs a generic `WindowsUpdate.exe`.
 - **Suspicious location:** Legitimate updaters do not run from `C:\Windows\Temp\`.
 - **Force flag:** Suggests automated, scripted deployment.
 - **Daily recurrence:** Ensures durability across reboots.
@@ -402,7 +401,7 @@ cmd.exe /c net user nexus_admin ******** /add
 
 Subsequently, `nexus_admin` was added to the local Administrators group.
 
-This behavior is consistent with:
+This behaviour is consistent with:
 
 - **MITRE ATT&CK T1136.001 – Local Account**.
 - Creation of a backdoor administrative account for persistent, privileged access.
@@ -516,23 +515,3 @@ Conduct a tabletop exercise with the helpdesk and IT teams to review:
 - Handling of unusual login prompts.
 - Escalation paths for suspected credential abuse.
 - Awareness of shared service account risks.
-
----
-
-## Detection Rationale
-
-The initial detection point was an **anomalous remote logon**: the `helpdesk` account connecting from a public IP to a workstation. This aligns with NIST SP 800-61 guidance to prioritize authentication anomalies as early indicators of compromise.
-
-Subsequent correlation of process, network, file, and registry telemetry confirmed:
-
-- Remote execution via WMI.
-- Deployment of a malicious payload.
-- Multiple persistence mechanisms.
-- Creation of a backdoor administrative account.
-- Indicators of lateral movement.
-
-This end-to-end investigation demonstrates how structured KQL hunting, combined with an understanding of attacker techniques, can uncover and validate a multi-stage intrusion.
-
----
-
-This case study can serve as a portfolio piece to demonstrate practical incident response, threat hunting, and security analytics skills in a real-world scenario.
