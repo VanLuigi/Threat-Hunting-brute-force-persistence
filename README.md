@@ -13,7 +13,7 @@
 
 This case study documents the end-to-end investigation of a suspected compromise on a finance workstation (`npt-ws01`). The incident began with a user report of repeated login prompts overnight and evolved into a confirmed intrusion involving credential abuse, remote execution, multiple persistence mechanisms, and indicators of lateral movement.
 
-The investigation was conducted using Microsoft Sentinel (KQL-based hunting), leveraging device logon, process, network, file, and registry telemetry. The analysis followed NIST SP 800-61 guidelines for incident handling and mapped attacker behaviors to the MITRE ATT&CK framework.
+The investigation was conducted using Microsoft Sentinel (KQL-based hunting), leveraging device logon, process, network, file, and registry telemetry. The analysis followed NIST SP 800-61 guidelines for incident handling and mapped attacker behaviours to the MITRE ATT&CK framework.
 
 The goal of this write-up is to demonstrate a structured, analyst-driven approach to detecting, analyzing, and responding to a realistic intrusion scenario.
 
@@ -381,15 +381,31 @@ This aligns with **MITRE ATT&CK T1543.003 – Create or Modify System Process: W
 
 ### Objective
 
-Check whether the attacker created new local accounts to maintain privileged access.
+### Objective
+
+Determine whether the attacker created new local user accounts to maintain persistent, privileged access to the compromised host.
 
 ### Approach
 
-Using `DeviceProcessEvents`, the investigation searched for `net.exe` or `net1.exe` usage to create or modify user accounts.
+On Windows, it is common for attackers to create new local user accounts as a persistence mechanism. To investigate this, the analyst searched for usage of `net.exe` or `net1.exe` commands associated with user account creation on `npt-ws01`.
 
-<--IMAGE-->
+**KQL Query:**
 
-**Caption suggestion:** Process events showing creation of the `nexus_admin` account and addition to the local Administrators group.
+```kql
+let start_time = datetime(2026-04-21T18:00:00.00Z);
+let end_time = datetime(2026-04-22T08:00:00.00Z);
+let HostInQuestion = "npt-ws01";
+DeviceProcessEvents
+| where TimeGenerated between (start_time .. end_time)
+| where DeviceName == HostInQuestion
+| where InitiatingProcessFileName contains "net.exe"
+| project TimeGenerated, DeviceName, ProcessCommandLine, AccountName, AccountDomain, InitiatingProcessCommandLine, InitiatingProcessAccountName, InitiatingProcessFileName
+| order by TimeGenerated desc
+```
+
+<img width="1384" height="499" alt="image" src="https://github.com/user-attachments/assets/2edd9304-5fc2-42ec-9679-b1b33a06f539" />
+
+
 
 ### Findings
 
