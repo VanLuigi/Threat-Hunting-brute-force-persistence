@@ -4,7 +4,7 @@
 **Incident ID:** #4451  
 **Date:** 22 April 2026  
 **Severity:** High  
-**Affected Hosts:** `npt-ws01` (primary), `npt-srv01` (secondary indicators)  
+**Affected Host:** `npt-ws01` 
 **Analyst Role:** Incident Response / Threat Hunting  
 
 ---
