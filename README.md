@@ -58,7 +58,6 @@ The first step was to review authentication events on `npt-ws01` using the `Devi
 let start_time = datetime(2026-04-21T18:00:00Z);
 let end_time = datetime(2026-04-22T08:00:00Z);
 let HostInQuestion = "npt-ws01";
-
 DeviceLogonEvents
 | where Timestamp between (start_time .. end_time)
 | where DeviceName =~ HostInQuestion
