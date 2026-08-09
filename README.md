@@ -11,7 +11,7 @@
 
 ## Overview
 
-This case study documents the end-to-end investigation of a suspected compromise on a finance workstation (`npt-ws01`). The incident began with a user report of repeated login prompts overnight and evolved into a confirmed intrusion involving credential abuse, remote execution, multiple persistence mechanisms, and indicators of lateral movement.
+This case study documents the end-to-end investigation of a suspected compromise on a finance workstation (`npt-ws01`). The incident began with a user report of repeated login prompts overnight and evolved into a confirmed intrusion involving credential abuse, remote execution, and multiple persistence mechanisms.
 
 The investigation was conducted using Microsoft Sentinel (KQL-based hunting), leveraging device logon, process, network, file, and registry telemetry. The analysis followed NIST SP 800-61 guidelines for incident handling and mapped attacker behaviours to the MITRE ATT&CK framework.
 
@@ -284,9 +284,6 @@ DeviceRegistryEvents
 
 <img width="1554" height="493" alt="image" src="https://github.com/user-attachments/assets/410290ac-c9e7-4e73-affd-da837e501e56" />
 
-
-**Caption suggestion:** Registry key creation events on `npt-ws01`, highlighting the malicious Run key.
-
 ### Findings
 
 A suspicious registry modification was identified:
@@ -381,8 +378,6 @@ This aligns with **MITRE ATT&CK T1543.003 – Create or Modify System Process: W
 
 ### Objective
 
-### Objective
-
 Determine whether the attacker created new local user accounts to maintain persistent, privileged access to the compromised host.
 
 ### Approach
@@ -428,8 +423,8 @@ This behaviour is consistent with:
 
 - **Ticket:** #4451  
 - **Date/Time (UTC):** 22 April 2026, ~04:30–06:00  
-- **Affected Hosts:** `npt-ws01` (primary), `npt-srv01` (secondary indicators)  
-- **Severity:** High (confirmed intrusion with persistence and lateral movement indicators)  
+- **Affected Host:** `npt-ws01`
+- **Severity:** High (confirmed intrusion with persistence)  
 
 ### Timeline of Events (Reconstructed)
 
@@ -443,7 +438,6 @@ This behaviour is consistent with:
 | ~04:42     | Persistence via Scheduled Task (`GoogleUpdaterTask`)                     | `DeviceProcessEvents` (`schtasks.exe`)        |
 | ~04:44     | Persistence via Windows Service (`WindowsHealthSvc`)                     | `DeviceProcessEvents` (`sc.exe`)              |
 | ~04:46     | Backdoor account `nexus_admin` created and added to Administrators       | `DeviceProcessEvents` (`net user`)            |
-| ~04:50+    | Indicators of lateral movement toward `npt-srv01`                        | Alert evidence (multiple ATT&CK techniques)   |
 
 ---
 
@@ -457,7 +451,6 @@ This behaviour is consistent with:
 | Defense Evasion   | Masquerading (T1036)                                                      | `WindowsUpdate.exe`, `GoogleUpdaterTask` naming            |
 | Credential Access | Local Account (T1136.001)                                                 | `nexus_admin` creation                                     |
 | Command and Control | Application Layer Protocol (T1071.001)                                  | `updates.abordasync.website`                               |
-| Lateral Movement  | Remote Services (T1021)                                                   | Indicators of movement to `npt-srv01`                      |
 
 ---
 
@@ -477,7 +470,7 @@ This behaviour is consistent with:
 - Preserve volatile memory (if feasible) before shutdown.
 - Disable the `helpdesk` account immediately.
 - Disable and remove the local `nexus_admin` account from `npt-ws01`.
-- Reset Mark Smith’s (`m.smith`) password and enforce MFA; monitor for suspicious activity.
+- Reset Mark Smith’s (`m.smith`) password and enforce MFA. Monitor for suspicious activity.
 - Block the attacker IP (`20.110.92.50`) and domain (`updates.abordasync.website`) at the firewall/proxy.
 - Add the `WindowsUpdate.exe` SHA256 hash to EDR/XDR blocklists.
 
@@ -508,7 +501,7 @@ On `npt-ws01`:
 
 ### 3. Recovery (Restore & Validate)
 
-- Re-image or rebuild `npt-ws01` if integrity is in doubt; otherwise, restore from a known-good backup.
+- Re-image or rebuild `npt-ws01` if integrity is in doubt. Otherwise, restore from a known-good backup.
 - Re-enable accounts only after password reset and MFA enforcement.
 - Reconnect hosts to the network only after IOC validation and EDR confirmation of a clean state.
 - Monitor closely for 7–14 days post-recovery using Sentinel hunting queries for the same IOCs.
@@ -519,8 +512,11 @@ Update detection rules in Sentinel to flag:
 
 - Remote logons from external IPs to workstations:
   ```kql
-  DeviceLogonEvents
-  | where RemoteIP !~ "10.|172.|192."
+DeviceLogonEvents
+| where RemoteIP !~ "^10\\.|^172\\.|^192\\."
+| where LogonType in ("RemoteInteractive", "Network")
+// | join DeviceInfo on DeviceId
+// | where DeviceType == "Workstation"
   ```
 - Suspicious `cmd.exe /Q /c start` patterns.
 - Creation of scheduled tasks or services by non-admin workflows (`schtasks.exe`, `sc.exe`).
