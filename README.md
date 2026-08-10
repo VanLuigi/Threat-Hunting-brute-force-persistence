@@ -17,6 +17,8 @@ The investigation was conducted using Microsoft Sentinel (KQL-based hunting), le
 
 The goal of this write-up is to demonstrate a structured, analyst-driven approach to detecting, analyzing, and responding to a realistic intrusion scenario.
 
+*This lab was built in the Cyber Range environment to develop and apply KQL and threat hunting skills in a simulated enterprise setting, including the reporting and presentation practices used to communicate findings as they would be delivered in an actual incident response engagement.*
+
 ---
 
 ## Initial Alert and Scope Definition
