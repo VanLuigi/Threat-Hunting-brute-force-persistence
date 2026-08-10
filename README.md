@@ -17,8 +17,6 @@ The investigation was conducted using Microsoft Sentinel (KQL-based hunting), le
 
 The goal of this write-up is to demonstrate a structured, analyst-driven approach to detecting, analyzing, and responding to a realistic intrusion scenario.
 
-*This lab was built in the Cyber Range environment to develop and apply KQL and threat hunting skills in a simulated enterprise setting, including the reporting and presentation practices used to communicate findings as they would be delivered in an actual incident response engagement.*
-
 ---
 
 ## Initial Alert and Scope Definition
@@ -513,13 +511,15 @@ On `npt-ws01`:
 Update detection rules in Sentinel to flag:
 
 - Remote logons from external IPs to workstations:
-  ```kql
+
+```kql
 DeviceLogonEvents
 | where RemoteIP !~ "^10\\.|^172\\.|^192\\."
 | where LogonType in ("RemoteInteractive", "Network")
 // | join DeviceInfo on DeviceId
 // | where DeviceType == "Workstation"
-  ```
+```
+
 - Suspicious `cmd.exe /Q /c start` patterns.
 - Creation of scheduled tasks or services by non-admin workflows (`schtasks.exe`, `sc.exe`).
 - New local admin accounts created outside of approved change processes.
@@ -529,3 +529,5 @@ Conduct a tabletop exercise with the helpdesk and IT teams to review:
 - Handling of unusual login prompts.
 - Escalation paths for suspected credential abuse.
 - Awareness of shared service account risks.
+
+
